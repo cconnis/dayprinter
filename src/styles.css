@@ -1,0 +1,97 @@
+/* Ensure container centers content and defines the maximum width */
+.container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Header styling */
+.title-bar {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.title-bar h1 {
+    font-size: 1.8em;
+    margin: 0;
+}
+
+.title-bar .date {
+    font-size: 1.2em;
+    color: #555;
+}
+
+/* Grid layout for two columns */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+    gap: 20px; /* Space between columns */
+    margin-bottom: 20px;
+}
+
+.column {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+/* Painting section styles */
+.painting img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.painting p {
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+
+/* Top Stories article styling */
+.top-stories article {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.top-stories h3 {
+    color: #333;
+    font-size: 1.2em;
+    margin: 0;
+}
+
+/* Quote and temperature styling */
+.quote, .temperature {
+    text-align: center;
+    font-size: 1.1em;
+    color: #555;
+    margin: 20px 0;
+}
+
+/* Specific styles for Puppeteer PDF generation */
+@media print {
+    /* Force grid layout for print/PDF mode */
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* Ensure columns don't stack in print */
+    .column {
+        box-sizing: border-box;
+        page-break-inside: avoid;
+    }
+
+    /* Fix image width and text alignment */
+    .painting img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .title-bar, .quote, .temperature {
+        text-align: center;
+    }
+}

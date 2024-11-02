@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DayPrinter</title>
+    <style>
+        /* Print settings guide */
+        .print-settings-guide {
+            background: #f0f0f0;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Page Layout */
+        .page {
+            width: 8.5in;
+            min-height: 11in;
+            margin: 0 auto;
+            padding: 0.5in;
+            background: white;
+            box-sizing: border-box;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 0.25in;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 18pt;
+        }
+
+        .date {
+            font-size: 14pt;
+            color: #333;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 3.5in 4in;
+            gap: 0.25in;
+            margin-bottom: 0.25in;
+        }
+
+        .art-section {
+            border: 1px solid #ccc;
+            padding: 0.125in;
+        }
+
+        .art-section img {
+            width: 100%;
+            height: auto;
+            max-height: 3.5in;
+            object-fit: contain;
+        }
+
+        .art-details {
+            margin-top: 0.125in;
+            font-size: 10pt;
+        }
+
+        .news-section {
+            border: 1px solid #ccc;
+            padding: 0.125in;
+        }
+
+        .news-item {
+            margin-bottom: 0.125in;
+            padding-bottom: 0.125in;
+            border-bottom: 1px solid #eee;
+        }
+
+        .news-item:last-child {
+            border-bottom: none;
+        }
+
+        .planner-section {
+            margin-top: 0.25in;
+            border: 1px solid #ccc;
+            height: 3.5in;
+            padding: 0.125in;
+        }
+
+        .footer {
+            margin-top: 0.25in;
+            padding-top: 0.125in;
+            border-top: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Print-specific styles */
+        @media print {
+            @page {
+                size: letter;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+            }
+
+            .print-settings-guide {
+                display: none;
+            }
+
+            .page {
+                width: 8.5in;
+                height: 11in;
+                margin: 0;
+                padding: 0.5in;
+                page-break-after: avoid;
+            }
+        }
+
+        /* Loading states */
+        .loading {
+            padding: 1rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .error {
+            color: #cc0000;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border: 1px solid #cc0000;
+            background: #fff0f0;
+        }
+    </style>
+</head>
+<body>
+<!-- Print Settings Guide -->
+<div class="print-settings-guide">
+    <h2>Print Settings Guide</h2>
+    <p>For best results, use these settings in your browser's print dialog:</p>
+    <ul style="list-style: none; padding: 0;">
+        <li>✓ Paper Size: Letter</li>
+        <li>✓ Margins: None</li>
+        <li>✓ Background Graphics: On</li>
+        <li>✗ Headers and Footers: Off</li>
+    </ul>
+    <button onclick="preparePrint()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Print Page
+    </button>
+</div>
+
+<div class="page">
+    <header class="header">
+        <h1>DayPrinter!</h1>
+        <div class="date"></div>
+    </header>
+
+    <div class="main-content">
+        <div class="art-section">
+            <img class="art-image" alt="Artwork of the day" style="display: none;">
+            <div class="art-details">
+                <div class="loading">Loading art piece...</div>
+            </div>
+        </div>
+
+        <div class="news-section">
+            <h2>Top Stories</h2>
+            <div class="news-content">
+                <div class="loading">Loading stories...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="planner-section">
+        <h2>Daily Notes & Tasks</h2>
+    </div>
+
+    <footer class="footer">
+        <div class="weather">High: 75°F | Low: 60°F</div>
+        <div class="quote">"Your inspirational quote here."</div>
+    </footer>
+</div>
+
+<script>
+    async function loadDayPrinter() {
+        try {
+            // Update date
+            const dateElement = document.querySelector('.date');
+            dateElement.textContent = new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Fetch stories
+            const storiesResponse = await fetch('/api/stories');
+            const stories = await storiesResponse.json();
+
+            const newsContent = document.querySelector('.news-content');
+            if (stories.length === 0) {
+                newsContent.innerHTML = '<div class="error">No stories available</div>';
+            } else {
+                newsContent.innerHTML = stories.map(story => `
+                    <div class="news-item">
+                        <h3>${story.title}</h3>
+                        <p><em>${story.byline}</em></p>
+                        <p>${story.abstract || ''}</p>
+                    </div>
+                `).join('');
+            }
+
+            // Fetch art
+            const artResponse = await fetch('/api/art');
+            const artPiece = await artResponse.json();
+
+            const artImage = document.querySelector('.art-image');
+            const artDetails = document.querySelector('.art-details');
+
+            if (!artPiece) {
+                artDetails.innerHTML = '<div class="error">No art piece available</div>';
+            } else {
+                artImage.style.display = 'block';
+                artImage.src = artPiece.image;
+                artImage.alt = artPiece.title;
+
+                artDetails.innerHTML = `
+                    <p><strong>Title:</strong> ${artPiece.title}</p>
+                    <p><strong>Artist:</strong> ${artPiece.artist}</p>
+                    <p><strong>Medium:</strong> ${artPiece.medium}</p>
+                `;
+            }
+
+        } catch (error) {
+            console.error('Error loading data:', error);
+            document.querySelector('.news-content').innerHTML =
+                '<div class="error">Error loading content. Please refresh the page.</div>';
+        }
+    }
+
+    function preparePrint() {
+        window.print();
+    }
+
+    // Load content when page loads
+    document.addEventListener('DOMContentLoaded', loadDayPrinter);
+</script>
+</body>
+</html>
